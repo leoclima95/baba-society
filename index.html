@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Baba Society 🌴⚽</title>
 
   <style>
@@ -77,23 +78,27 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
-    /* Autocomplete */
+    /* AUTOCOMPLETE */
     .suggestions {
       position: absolute;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       width: calc(100% - 32px);
+      max-height: 180px;
+      overflow-y: auto;
       z-index: 10;
+      display: none;
     }
 
     .suggestions div {
       padding: 10px;
       cursor: pointer;
+      border-bottom: 1px solid #eee;
     }
 
     .suggestions div:hover {
-      background: #eee;
+      background: #f0f0f0;
     }
   </style>
 </head>
@@ -105,6 +110,7 @@
 
   <div class="card">
     <h3>Adicionar jogador</h3>
+
     <input id="name" placeholder="Nome do jogador" oninput="showSuggestions()">
     <div id="suggestions" class="suggestions"></div>
 
@@ -140,7 +146,7 @@
 <script>
   var players = [];
   var lastTeams = [];
-  var savedPlayers = JSON.parse(localStorage.getItem('savedPlayers') || '[]');
+  var savedPlayers = JSON.parse(localStorage.getItem('savedPlayers')) || [];
 
   function stars(n) {
     return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
@@ -154,6 +160,43 @@
     }
   }
 
+  function showSuggestions() {
+    var input = document.getElementById('name').value.toLowerCase();
+    var box = document.getElementById('suggestions');
+    box.innerHTML = '';
+
+    if (!input) {
+      box.style.display = 'none';
+      return;
+    }
+
+    var matches = savedPlayers.filter(p =>
+      p.name.toLowerCase().startsWith(input)
+    );
+
+    if (matches.length === 0) {
+      box.style.display = 'none';
+      return;
+    }
+
+    box.style.display = 'block';
+
+    matches.forEach(p => {
+      var div = document.createElement('div');
+      div.textContent = p.name;
+
+      div.onclick = function () {
+        document.getElementById('name').value = p.name;
+        document.getElementById('position').value = p.position;
+        document.getElementById('rating').value = p.rating;
+        box.innerHTML = '';
+        box.style.display = 'none';
+      };
+
+      box.appendChild(div);
+    });
+  }
+
   function addPlayer() {
     var name = document.getElementById('name').value.trim();
     var position = document.getElementById('position').value;
@@ -165,12 +208,12 @@
     }
 
     var player = { name, position, rating };
-
     players.push(player);
     savePlayerData(player);
 
     document.getElementById('name').value = '';
-    document.getElementById('suggestions').innerHTML = '';
+    document.getElementById('suggestions').style.display = 'none';
+
     renderPlayers();
   }
 
@@ -185,33 +228,12 @@
 
     players.forEach(function(p, i) {
       var li = document.createElement('li');
-      li.innerHTML = p.name + ' - ' + p.position + ' (' + stars(p.rating) + ') <button onclick="removePlayer(' + i + ')">❌</button>';
+      li.innerHTML = `${p.name} - ${p.position} (${stars(p.rating)}) 
+        <button onclick="removePlayer(${i})">❌</button>`;
       ul.appendChild(li);
     });
 
     document.getElementById('count').textContent = players.length;
-  }
-
-  function showSuggestions() {
-    var input = document.getElementById('name').value.toLowerCase();
-    var box = document.getElementById('suggestions');
-    box.innerHTML = '';
-
-    if (!input) return;
-
-    savedPlayers
-      .filter(p => p.name.toLowerCase().includes(input))
-      .forEach(p => {
-        var div = document.createElement('div');
-        div.textContent = p.name;
-        div.onclick = function () {
-          document.getElementById('name').value = p.name;
-          document.getElementById('position').value = p.position;
-          document.getElementById('rating').value = p.rating;
-          box.innerHTML = '';
-        };
-        box.appendChild(div);
-      });
   }
 
   function drawTeams() {
@@ -228,8 +250,7 @@
     }
 
     lastTeams.forEach(function(team) {
-      var best = team.reduce((a, b) => b.rating > a.rating ? b : a, team[0]);
-
+      var best = team.reduce((a, b) => b.rating > a.rating ? b : a);
       var counts = { Zagueiro: 0, Meia: 0, Atacante: 0 };
       var total = 0;
 
@@ -242,31 +263,29 @@
 
       var div = document.createElement('div');
       div.className = 'team';
-      div.innerHTML =
-        '<h4>Time ' + best.name + '</h4>' +
-        '<div>Média ⭐ ' + avg + '</div>' +
-        '<div>🛡️ ' + counts.Zagueiro + ' | 🎯 ' + counts.Meia + ' | ⚽ ' + counts.Atacante + '</div>';
+      div.innerHTML = `
+        <h4>Time ${best.name}</h4>
+        <div>Média ⭐ ${avg}</div>
+        <div>🛡️ ${counts.Zagueiro} | 🎯 ${counts.Meia} | ⚽ ${counts.Atacante}</div>
+      `;
 
       team.forEach(p => {
-        div.innerHTML += '<div>' + p.name + ' - ' + p.position + ' (' + stars(p.rating) + ')</div>';
+        div.innerHTML += `<div>${p.name} - ${p.position} (${stars(p.rating)})</div>`;
       });
 
       container.appendChild(div);
     });
 
-    if (lastTeams.length) {
-      var btn = document.createElement('button');
-      btn.textContent = 'Compartilhar TODOS os times no WhatsApp';
-      btn.onclick = shareAllTeams;
-      container.appendChild(btn);
-    }
+    var btn = document.createElement('button');
+    btn.textContent = 'Compartilhar TODOS os times no WhatsApp';
+    btn.onclick = shareAllTeams;
+    container.appendChild(btn);
   }
 
   function shareAllTeams() {
     var text = '⚽ Baba Society – Times do dia ⚽\n\n';
 
     lastTeams.forEach(team => {
-      if (!team.length) return;
       team.sort((a, b) => b.rating - a.rating);
       text += 'Time ' + team[0].name + '\n';
       team.forEach(p => text += '- ' + p.name + '\n');
