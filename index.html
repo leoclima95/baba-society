@@ -249,3 +249,33 @@
 
       team.forEach(p => {
         div.innerHTML += '<div>' + p.name + ' - ' + p.position + ' (' + stars(p.rating) + ')</div>';
+      });
+
+      container.appendChild(div);
+    });
+
+    if (lastTeams.length) {
+      var btn = document.createElement('button');
+      btn.textContent = 'Compartilhar TODOS os times no WhatsApp';
+      btn.onclick = shareAllTeams;
+      container.appendChild(btn);
+    }
+  }
+
+  function shareAllTeams() {
+    var text = '⚽ Baba Society – Times do dia ⚽\n\n';
+
+    lastTeams.forEach(team => {
+      if (!team.length) return;
+      team.sort((a, b) => b.rating - a.rating);
+      text += 'Time ' + team[0].name + '\n';
+      team.forEach(p => text += '- ' + p.name + '\n');
+      text += '\n';
+    });
+
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  }
+</script>
+
+</body>
+</html>
