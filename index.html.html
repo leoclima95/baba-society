@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Baba Society 🌴⚽</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 12px;
+      font-size: 18px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 8px;
+      font-size: 18px;
+      border-radius: 10px;
+    }
+
+    button {
+      border: none;
+      background: #1e88e5;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #43a047;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .teams {
+      margin-top: 20px;
+    }
+
+    .team {
+      background: #fff;
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<h1>Baba Society 🌴⚽</h1>
+
+<div class="container">
+
+  <div class="card">
+    <h3>Adicionar jogador</h3>
+    <input id="name" placeholder="Nome do jogador">
+    <select id="position">
+      <option>Zagueiro</option>
+      <option>Meia</option>
+      <option>Atacante</option>
+    </select>
+    <select id="rating">
+      <option value="0">☆☆☆☆☆</option>
+      <option value="1">★☆☆☆☆</option>
+      <option value="2">★★☆☆☆</option>
+      <option value="3">★★★☆☆</option>
+      <option value="4">★★★★☆</option>
+      <option value="5">★★★★★</option>
+    </select>
+    <button onclick="addPlayer()">Adicionar</button>
+  </div>
+
+  <div class="card">
+    <h3>Jogadores (<span id="count">0</span>)</h3>
+    <ul id="list"></ul>
+    <button onclick="drawTeams()">Sortear times</button>
+    <button class="secondary" onclick="drawTeams()">🔄 Resortear</button>
+  </div>
+
+</div>
+
+<div class="teams" id="teams"></div>
+
+<script>
+  var players = [];
+  var lastTeams = [];
+
+  function stars(n) {
+    return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+  }
+
+  function addPlayer() {
+    var name = document.getElementById('name').value.trim();
+    var position = document.getElementById('position').value;
+    var rating = parseInt(document.getElementById('rating').value);
+
+    if (!name) {
+      alert('Informe o nome');
+      return;
+    }
+
+    players.push({ name: name, position: position, rating: rating });
+    document.getElementById('name').value = '';
+    renderPlayers();
+  }
+
+  function removePlayer(index) {
+    players.splice(index, 1);
+    renderPlayers();
+  }
+
+  function renderPlayers() {
+    var ul = document.getElementById('list');
+    ul.innerHTML = '';
+
+    players.forEach(function(p, i) {
+      var li = document.createElement('li');
+      li.innerHTML = p.name + ' - ' + p.position + ' (' + stars(p.rating) + ') <button onclick="removePlayer(' + i + ')">❌</button>';
+      ul.appendChild(li);
+    });
+
+    document.getElementById('count').textContent = players.length;
+  }
+
+  function drawTeams() {
+    if (players.length === 0) return;
+
+    var container = document.getElementById('teams');
+    container.innerHTML = '';
+    lastTeams = [];
+
+    var shuffled = players.slice().sort(function() { return Math.random() - 0.5; });
+
+    for (var i = 0; i < shuffled.length; i += 6) {
+      lastTeams.push(shuffled.slice(i, i + 6));
+    }
+
+    lastTeams.forEach(function(team) {
+      var best = team.reduce(function(a, b) {
+        return b.rating > a.rating ? b : a;
+      }, team[0]);
+
+      var counts = { Zagueiro: 0, Meia: 0, Atacante: 0 };
+      var total = 0;
+
+      team.forEach(function(p) {
+        counts[p.position]++;
+        total += p.rating;
+      });
+
+      var avg = (total / team.length).toFixed(2);
+
+      var div = document.createElement('div');
+      div.className = 'team';
+      div.innerHTML = '<h4>Time ' + best.name + '</h4>' +
+        '<div>Média ⭐ ' + avg + '</div>' +
+        '<div>🛡️ ' + counts.Zagueiro + ' | 🎯 ' + counts.Meia + ' | ⚽ ' + counts.Atacante + '</div>';
+
+      team.forEach(function(p) {
+        div.innerHTML += '<div>' + p.name + ' - ' + p.position + ' (' + stars(p.rating) + ')</div>';
+      });
+
+      container.appendChild(div);
+    });
+
+    if (lastTeams.length > 0) {
+      var btn = document.createElement('button');
+      btn.textContent = 'Compartilhar TODOS os times no WhatsApp';
+      btn.onclick = shareAllTeams;
+      container.appendChild(btn);
+    }
+  }
+
+  function shareAllTeams() {
+    var text = '⚽ Baba Society – Times do dia ⚽\n\n';
+
+    lastTeams.forEach(function(team) {
+      if (team.length === 0) return;
+
+      team.sort(function(a, b) { return b.rating - a.rating; });
+      text += 'Time ' + team[0].name + '\n';
+
+      team.forEach(function(p) {
+        text += '- ' + p.name + '\n';
+      });
+
+      text += '\n';
+    });
+
+    // encodeURIComponent já preserva as quebras de linha corretamente
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  }
+</script>
+
+</body>
+</html>
