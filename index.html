@@ -1,299 +1,310 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baba Society ⚽</title>
 
-  <title>Baba Society 🌴⚽</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#22c55e">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 12px;
-      font-size: 18px;
-    }
+<style>
+:root{
+  --bg:#0f172a; --card:#111827;
+  --primary:#22c55e; --secondary:#38bdf8;
+  --danger:#ef4444; --warning:#facc15;
+  --text:#e5e7eb;
+}
+body{margin:0;font-family:Arial;background:var(--bg);color:var(--text);}
+.container{max-width:900px;margin:auto;padding:12px;}
+h1,h2{text-align:center;}
+.card{background:var(--card);border-radius:14px;padding:12px;margin-bottom:12px;}
+button{border:none;border-radius:10px;padding:10px;cursor:pointer;font-weight:bold;width:100%;}
+.btn-primary{background:var(--primary);}
+.btn-secondary{background:var(--secondary);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-warning{background:var(--warning);}
+input,select{width:100%;padding:10px;border-radius:10px;border:none;margin-bottom:8px;}
 
-    h1 {
-      text-align: center;
-      margin-bottom: 16px;
-    }
+.player-box{
+  background:#020617;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+.player-added{background:#052e16;}
+.actions{display:flex;gap:6px;margin-top:6px;}
+.small-btn{padding:6px 10px;border-radius:8px;}
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .card {
-      background: #fff;
-      padding: 16px;
-      border-radius: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      position: relative;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 8px;
-      font-size: 18px;
-      border-radius: 10px;
-    }
-
-    button {
-      border: none;
-      background: #1e88e5;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      background: #43a047;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-    }
-
-    .teams {
-      margin-top: 20px;
-    }
-
-    .team {
-      background: #fff;
-      padding: 16px;
-      border-radius: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    /* AUTOCOMPLETE */
-    .suggestions {
-      position: absolute;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      width: calc(100% - 32px);
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 10;
-      display: none;
-    }
-
-    .suggestions div {
-      padding: 10px;
-      cursor: pointer;
-      border-bottom: 1px solid #eee;
-    }
-
-    .suggestions div:hover {
-      background: #f0f0f0;
-    }
-  </style>
+.team{border:1px solid #1f2933;border-radius:12px;padding:10px;margin-bottom:10px;}
+.team h3{color:var(--secondary);}
+.badges{display:flex;gap:12px;font-size:14px;margin-bottom:6px;}
+</style>
 </head>
+
 <body>
-
-<h1>Baba Society 🌴⚽</h1>
-
 <div class="container">
+<h1>Baba Society ⚽</h1>
 
-  <div class="card">
-    <h3>Adicionar jogador</h3>
+<div class="card">
+<h2 id="formTitle">Adicionar jogador</h2>
+<input id="nameInput" placeholder="Nome do jogador">
+<select id="position">
+  <option>Zagueiro</option>
+  <option>Meia</option>
+  <option>Atacante</option>
+</select>
+<select id="rating"></select>
 
-    <input id="name" placeholder="Nome do jogador" oninput="showSuggestions()">
-    <div id="suggestions" class="suggestions"></div>
-
-    <select id="position">
-      <option>Zagueiro</option>
-      <option>Meia</option>
-      <option>Atacante</option>
-    </select>
-
-    <select id="rating">
-      <option value="0">☆☆☆☆☆</option>
-      <option value="1">★☆☆☆☆</option>
-      <option value="2">★★☆☆☆</option>
-      <option value="3">★★★☆☆</option>
-      <option value="4">★★★★☆</option>
-      <option value="5">★★★★★</option>
-    </select>
-
-    <button onclick="addPlayer()">Adicionar</button>
-  </div>
-
-  <div class="card">
-    <h3>Jogadores (<span id="count">0</span>)</h3>
-    <ul id="list"></ul>
-    <button onclick="drawTeams()">Sortear times</button>
-    <button class="secondary" onclick="drawTeams()">🔄 Resortear</button>
-  </div>
-
+<button class="btn-primary" onclick="savePlayer()" id="saveBtn">Salvar jogador</button>
+<button class="btn-secondary" onclick="cancelEdit()" id="cancelBtn" style="display:none">Cancelar edição</button>
 </div>
 
-<div class="teams" id="teams"></div>
+<div class="card">
+<h2>Jogadores salvos</h2>
+<div id="savedPlayers"></div>
+</div>
+
+<div class="card">
+<h2>Lista do dia (<span id="count">0</span>)</h2>
+<div id="todayPlayers"></div>
+<button class="btn-secondary" onclick="drawTeams()">Sortear times</button>
+<button class="btn-primary" onclick="shareWhatsApp()">📲 Compartilhar no WhatsApp</button>
+</div>
+
+<div class="card">
+<h2>Times</h2>
+<div id="teams"></div>
+</div>
+</div>
 
 <script>
-  var players = [];
-  var lastTeams = [];
-  var savedPlayers = JSON.parse(localStorage.getItem('savedPlayers')) || [];
+/* ===== ESTADO ===== */
+let players = JSON.parse(localStorage.getItem("players")) || [];
+let today = [];
+let editingIndex = null;
+let lastTeams = [];
+let lastLeftovers = [];
 
-  function stars(n) {
-    return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
-  }
+/* ===== ELEMENTOS ===== */
+const nameInput = document.getElementById("nameInput");
+const ratingSelect = document.getElementById("rating");
+const savedPlayersDiv = document.getElementById("savedPlayers");
+const todayPlayersDiv = document.getElementById("todayPlayers");
+const teamsDiv = document.getElementById("teams");
+const countSpan = document.getElementById("count");
 
-  function savePlayerData(player) {
-    var exists = savedPlayers.find(p => p.name.toLowerCase() === player.name.toLowerCase());
-    if (!exists) {
-      savedPlayers.push(player);
-      localStorage.setItem('savedPlayers', JSON.stringify(savedPlayers));
-    }
-  }
+/* ===== UTIL ===== */
+for(let i=1;i<=10;i++){
+  const o=document.createElement("option");
+  o.value=i;
+  o.textContent="⭐".repeat(i);
+  ratingSelect.appendChild(o);
+}
+const stars=n=>"⭐".repeat(n);
+const posEmoji=p=>p==="Zagueiro"?"🛡️":p==="Meia"?"🎯":"⚽";
 
-  function showSuggestions() {
-    var input = document.getElementById('name').value.toLowerCase();
-    var box = document.getElementById('suggestions');
-    box.innerHTML = '';
+/* ===== CRUD ===== */
+function savePlayer(){
+  const name=nameInput.value.trim();
+  if(!name) return;
 
-    if (!input) {
-      box.style.display = 'none';
+  const pos=position.value;
+  const rat=parseInt(rating.value);
+
+  if(editingIndex!==null){
+    players[editingIndex].position=pos;
+    players[editingIndex].rating=rat;
+    cancelEdit();
+  }else{
+    if(players.some(p=>p.name===name)){
+      alert("Jogador já existe");
       return;
     }
+    players.push({name,position:pos,rating:rat});
+  }
 
-    var matches = savedPlayers.filter(p =>
-      p.name.toLowerCase().startsWith(input)
-    );
+  localStorage.setItem("players",JSON.stringify(players));
+  nameInput.value="";
+  renderSaved();
+}
 
-    if (matches.length === 0) {
-      box.style.display = 'none';
-      return;
+function editPlayer(i){
+  const p=players[i];
+  nameInput.value=p.name;
+  nameInput.disabled=true;
+  position.value=p.position;
+  rating.value=p.rating;
+  editingIndex=i;
+  formTitle.textContent="Editar jogador";
+  saveBtn.textContent="Salvar edição";
+  cancelBtn.style.display="block";
+}
+
+function cancelEdit(){
+  editingIndex=null;
+  nameInput.value="";
+  nameInput.disabled=false;
+  formTitle.textContent="Adicionar jogador";
+  saveBtn.textContent="Salvar jogador";
+  cancelBtn.style.display="none";
+}
+
+/* ===== LISTAS ===== */
+function toggleToday(name){
+  const p=players.find(x=>x.name===name);
+  today.includes(p)?today=today.filter(x=>x!==p):today.push(p);
+  renderToday();renderSaved();
+}
+
+function renderSaved(){
+  savedPlayersDiv.innerHTML="";
+  players.forEach((p,i)=>{
+    const added=today.includes(p);
+    savedPlayersDiv.innerHTML+=`
+      <div class="player-box ${added?'player-added':''}">
+        <strong>${p.name}</strong><br>
+        ${posEmoji(p.position)} ${p.position}<br>
+        ${stars(p.rating)}
+        <div class="actions">
+          <button class="small-btn btn-warning" onclick="editPlayer(${i})">✏️</button>
+          <button class="small-btn btn-primary" onclick="toggleToday('${p.name}')">
+            ${added?'✔':'+'}
+          </button>
+        </div>
+      </div>`;
+  });
+}
+
+function renderToday(){
+  countSpan.textContent=today.length;
+  todayPlayersDiv.innerHTML=today.map(p=>`
+    <div class="player-box">
+      ${p.name}
+      <button class="small-btn btn-danger" onclick="toggleToday('${p.name}')">x</button>
+    </div>`).join("");
+}
+
+/* ===== SORTEIO COM EQUILÍBRIO ===== */
+function drawTeams(){
+  teamsDiv.innerHTML="";
+  lastTeams=[]; lastLeftovers=[];
+
+  if(today.length<12){
+    alert("Mínimo de 12 jogadores");
+    return;
+  }
+
+  const TEAM_SIZE=6;
+  const teamCount=Math.floor(today.length/TEAM_SIZE);
+  const usableCount=teamCount*TEAM_SIZE;
+
+  const shuffled=[...today].sort(()=>Math.random()-0.5);
+  const usable=shuffled.slice(0,usableCount);
+  lastLeftovers=shuffled.slice(usableCount);
+
+  let zagueiros=usable.filter(p=>p.position==="Zagueiro").sort((a,b)=>b.rating-a.rating);
+  let meias=usable.filter(p=>p.position==="Meia").sort((a,b)=>b.rating-a.rating);
+  let atacantes=usable.filter(p=>p.position==="Atacante").sort((a,b)=>b.rating-a.rating);
+
+  let teams=Array.from({length:teamCount},()=>[]);
+  const avg=t=>t.length?t.reduce((s,p)=>s+p.rating,0)/t.length:0;
+
+  function safeAdd(team,player){
+    if(team.length<TEAM_SIZE){ team.push(player); return true;}
+    return false;
+  }
+
+  for(let i=0;i<teamCount;i++){
+    if(zagueiros.length) safeAdd(teams[i],zagueiros.shift());
+    if(meias.length) safeAdd(teams[i],meias.shift());
+    if(atacantes.length) safeAdd(teams[i],atacantes.shift());
+  }
+
+  function distribute(group){
+    while(group.length){
+      let available=teams.filter(t=>t.length<TEAM_SIZE);
+      if(!available.length) break;
+
+      available.sort((a,b)=>avg(a)-avg(b));
+      safeAdd(available[0],group.shift());
+      if(!group.length) break;
+
+      available=teams.filter(t=>t.length<TEAM_SIZE);
+      if(!available.length) break;
+
+      available.sort((a,b)=>avg(b)-avg(a));
+      safeAdd(available[0],group.pop());
     }
-
-    box.style.display = 'block';
-
-    matches.forEach(p => {
-      var div = document.createElement('div');
-      div.textContent = p.name;
-
-      div.onclick = function () {
-        document.getElementById('name').value = p.name;
-        document.getElementById('position').value = p.position;
-        document.getElementById('rating').value = p.rating;
-        box.innerHTML = '';
-        box.style.display = 'none';
-      };
-
-      box.appendChild(div);
-    });
   }
 
-  function addPlayer() {
-    var name = document.getElementById('name').value.trim();
-    var position = document.getElementById('position').value;
-    var rating = parseInt(document.getElementById('rating').value);
+  distribute(zagueiros);
+  distribute(meias);
+  distribute(atacantes);
 
-    if (!name) {
-      alert('Informe o nome');
-      return;
-    }
+  renderTeams(teams,lastLeftovers);
+}
 
-    var player = { name, position, rating };
-    players.push(player);
-    savePlayerData(player);
+/* ===== RENDER TIMES ===== */
+function renderTeams(teams,leftovers){
+  teamsDiv.innerHTML="";
+  teams.forEach(t=>{
+    const best=t.reduce((a,b)=>b.rating>a.rating?b:a);
+    const avgTeam=(t.reduce((s,p)=>s+p.rating,0)/t.length).toFixed(1);
+    lastTeams.push({name:best.name,players:t});
 
-    document.getElementById('name').value = '';
-    document.getElementById('suggestions').style.display = 'none';
+    const c={Zagueiro:0,Meia:0,Atacante:0};
+    t.forEach(p=>c[p.position]++);
 
-    renderPlayers();
+    teamsDiv.innerHTML+=`
+      <div class="team">
+        <h3>Time ${best.name} ⭐ ${avgTeam}</h3>
+        <div class="badges">
+          🛡️ ${c.Zagueiro} 🎯 ${c.Meia} ⚽ ${c.Atacante}
+        </div>
+        ${t.map(p=>p.name).join("<br>")}
+      </div>`;
+  });
+
+  if(leftovers.length){
+    teamsDiv.innerHTML+=`
+      <div class="team">
+        <h3>Time incompleto</h3>
+        ${leftovers.map(p=>p.name).join("<br>")}
+      </div>`;
+  }
+}
+
+/* ===== WHATSAPP ===== */
+function shareWhatsApp(){
+  if(!lastTeams.length){
+    alert("Sorteie os times primeiro");
+    return;
   }
 
-  function removePlayer(index) {
-    players.splice(index, 1);
-    renderPlayers();
+  let text="Baba Society – Times do dia \n\n";
+  lastTeams.forEach(t=>{
+    text+=`Time ${t.name}\n`;
+    t.players.forEach(p=>text+=`- ${p.name}\n`);
+    text+="\n";
+  });
+
+  if(lastLeftovers.length){
+    text+="Time de fora\n";
+    lastLeftovers.forEach(p=>text+=`- ${p.name}\n`);
   }
 
-  function renderPlayers() {
-    var ul = document.getElementById('list');
-    ul.innerHTML = '';
+  window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
+}
 
-    players.forEach(function(p, i) {
-      var li = document.createElement('li');
-      li.innerHTML = `${p.name} - ${p.position} (${stars(p.rating)}) 
-        <button onclick="removePlayer(${i})">❌</button>`;
-      ul.appendChild(li);
-    });
+/* INIT */
+renderSaved(); renderToday();
+</script>
 
-    document.getElementById('count').textContent = players.length;
-  }
-
-  function drawTeams() {
-    if (players.length === 0) return;
-
-    var container = document.getElementById('teams');
-    container.innerHTML = '';
-    lastTeams = [];
-
-    var shuffled = players.slice().sort(() => Math.random() - 0.5);
-
-    for (var i = 0; i < shuffled.length; i += 6) {
-      lastTeams.push(shuffled.slice(i, i + 6));
-    }
-
-    lastTeams.forEach(function(team) {
-      var best = team.reduce((a, b) => b.rating > a.rating ? b : a);
-      var counts = { Zagueiro: 0, Meia: 0, Atacante: 0 };
-      var total = 0;
-
-      team.forEach(p => {
-        counts[p.position]++;
-        total += p.rating;
-      });
-
-      var avg = (total / team.length).toFixed(2);
-
-      var div = document.createElement('div');
-      div.className = 'team';
-      div.innerHTML = `
-        <h4>Time ${best.name}</h4>
-        <div>Média ⭐ ${avg}</div>
-        <div>🛡️ ${counts.Zagueiro} | 🎯 ${counts.Meia} | ⚽ ${counts.Atacante}</div>
-      `;
-
-      team.forEach(p => {
-        div.innerHTML += `<div>${p.name} - ${p.position} (${stars(p.rating)})</div>`;
-      });
-
-      container.appendChild(div);
-    });
-
-    var btn = document.createElement('button');
-    btn.textContent = 'Compartilhar TODOS os times no WhatsApp';
-    btn.onclick = shareAllTeams;
-    container.appendChild(btn);
-  }
-
-  function shareAllTeams() {
-    var text = '⚽ Baba Society – Times do dia ⚽\n\n';
-
-    lastTeams.forEach(team => {
-      team.sort((a, b) => b.rating - a.rating);
-      text += 'Time ' + team[0].name + '\n';
-      team.forEach(p => text += '- ' + p.name + '\n');
-      text += '\n';
-    });
-
-    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
-  }
+<script>
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("service-worker.js");
+}
 </script>
 
 </body>
